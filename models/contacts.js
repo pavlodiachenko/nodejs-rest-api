@@ -43,7 +43,6 @@ const addContact = (body) => {
     email: body.email,
     phone: body.phone,
   };
-  console.log(newObj);
   const list = listContacts();
   list.push(newObj);
   fs.writeFile(contactsPath, JSON.stringify(list), (err) => {
@@ -51,6 +50,7 @@ const addContact = (body) => {
       throw err;
     }
   });
+  return newObj;
 };
 
 const updateContact = (id, body) => {
