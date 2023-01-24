@@ -2,29 +2,31 @@ const fs = require("fs");
 const path = require("path");
 const contactsPath = path.join(__dirname, "contacts.json");
 
-const listContacts = () => {
-  return JSON.parse(
-    fs.readFileSync(contactsPath, "utf8", (err, data) => {
+const listContacts = async () => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(contactsPath, "utf8", (err, data) => {
       if (err) {
-        throw err;
+        reject(err);
       } else {
-        return data;
+        resolve(JSON.parse(data));
       }
-    })
-  );
+    });
+  });
 };
 
-const getContactById = (id) => {
-  return listContacts().find((item) => {
+const getContactById = async (id) => {
+  const list = await listContacts();
+  return list.find((item) => {
     return item.id === id;
   });
 };
 
-const removeContact = (id) => {
-  return fs.writeFile(
+const removeContact = async (id) => {
+  const list = await listContacts();
+  fs.writeFile(
     contactsPath,
     JSON.stringify(
-      listContacts().filter((item) => {
+      list.filter((item) => {
         return item.id !== id;
       })
     ),
@@ -36,14 +38,16 @@ const removeContact = (id) => {
   );
 };
 
-const addContact = (body) => {
+const addContact = async (body) => {
+  const list = await listContacts();
+  const id = +list[list.length - 1].id + 1;
   const newObj = {
-    id: (+listContacts()[listContacts().length - 1].id + 1).toString(),
+    id: id.toString(),
     name: body.name,
     email: body.email,
     phone: body.phone,
   };
-  const list = listContacts();
+
   list.push(newObj);
   fs.writeFile(contactsPath, JSON.stringify(list), (err) => {
     if (err) {
@@ -53,9 +57,9 @@ const addContact = (body) => {
   return newObj;
 };
 
-const updateContact = (id, body) => {
-  const list = listContacts();
-  const index = listContacts().findIndex((element) => {
+const updateContact = async (id, body) => {
+  const list = await listContacts();
+  const index = list.findIndex((element) => {
     return element.id === id;
   });
   const contact = list[index];
