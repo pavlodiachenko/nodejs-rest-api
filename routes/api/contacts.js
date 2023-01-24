@@ -37,16 +37,15 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.delete("/:id", (req, res, next) => {
-  getContactById(req.params.id).then((contact) => {
-    if (contact) {
-      removeContact(req.params.id).then(() =>
-        res.status(200).json({ message: "contact deleted" })
-      );
-    } else {
-      res.status(404).json({ message: "Not found" });
-    }
-  });
+router.delete("/:id", async (req, res, next) => {
+  const contact = await getContactById(req.params.id);
+  if (contact) {
+    removeContact(req.params.id).then(() =>
+      res.status(200).json({ message: "contact deleted" })
+    );
+  } else {
+    res.status(404).json({ message: "Not found" });
+  }
 });
 
 router.put("/:id", async (req, res, next) => {

@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const contactsPath = path.join(__dirname, "contacts.json");
 
-const listContacts = async () => {
+const listContacts = () => {
   return new Promise((resolve, reject) => {
     fs.readFile(contactsPath, "utf8", (err, data) => {
       if (err) {
