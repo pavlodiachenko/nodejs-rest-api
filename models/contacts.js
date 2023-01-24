@@ -2,16 +2,15 @@ const fs = require("fs");
 const path = require("path");
 const contactsPath = path.join(__dirname, "contacts.json");
 
-const listContacts = () => {
-  return new Promise((resolve, reject) => {
-    fs.readFile(contactsPath, "utf8", (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(JSON.parse(data));
-      }
-    });
+const listContacts = async () => {
+  const list = await fs.promises.readFile(contactsPath, "utf8", (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      return data;
+    }
   });
+  return JSON.parse(list);
 };
 
 const getContactById = async (id) => {
@@ -49,11 +48,12 @@ const addContact = async (body) => {
   };
 
   list.push(newObj);
-  fs.writeFile(contactsPath, JSON.stringify(list), (err) => {
+  await fs.promises.writeFile(contactsPath, JSON.stringify(list), (err) => {
     if (err) {
       throw err;
     }
   });
+
   return newObj;
 };
 
@@ -72,7 +72,7 @@ const updateContact = async (id, body) => {
   if (body.phone) {
     contact.phone = body.phone;
   }
-  fs.writeFile(contactsPath, JSON.stringify(list), (err) => {
+  await fs.promises.writeFile(contactsPath, JSON.stringify(list), (err) => {
     if (err) {
       throw err;
     }
