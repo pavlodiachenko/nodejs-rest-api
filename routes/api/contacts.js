@@ -6,8 +6,13 @@ const {
   removeContact,
   addContact,
   updateContact,
+  updateStatusContact,
 } = require("../../models/contacts");
-const { postSchema, putSchema } = require("../../validation/schemas");
+const {
+  postSchema,
+  putSchema,
+  patchSchema,
+} = require("../../validation/schemas");
 const app = express();
 const router = express.Router();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -63,6 +68,23 @@ router.put("/:id", async (req, res, next) => {
     }
   } else {
     return res.status(404).json({ message: "Not found" });
+  }
+});
+
+router.patch("/:id/favorite", (req, res, next) => {
+  const data = req.body;
+  const id = req.params.id;
+  const { error, value } = patchSchema.validate(data);
+  if (error) {
+    console.log(error.details[0].message);
+    return res
+      .status(400)
+      .json({ message: "missing field favorite or invalid data enetered" });
+  }
+  if (value) {
+    updateStatusContact(id, data).then((contact) => {
+      return res.status(200).json(contact);
+    });
   }
 });
 
