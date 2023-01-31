@@ -1,83 +1,66 @@
-const fs = require("fs");
-const path = require("path");
-const contactsPath = path.join(__dirname, "contacts.json");
+const Contact = require("./contactsdb");
 
 const listContacts = async () => {
-  const list = await fs.promises.readFile(contactsPath, "utf8", (err, data) => {
-    if (err) {
-      throw err;
-    } else {
-      return data;
-    }
-  });
-  return JSON.parse(list);
+  return await Contact.find()
+    .then((result) => {
+      return result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 const getContactById = async (id) => {
-  const list = await listContacts();
-  return list.find((item) => {
-    return item.id === id;
-  });
+  return await Contact.findById(id)
+    .then((result) => {
+      return result;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
-const removeContact = async (id) => {
-  const list = await listContacts();
-  fs.writeFile(
-    contactsPath,
-    JSON.stringify(
-      list.filter((item) => {
-        return item.id !== id;
-      })
-    ),
-    (err) => {
-      if (err) {
-        throw err;
+const removeContact = async (id, res) => {
+  return await Contact.findByIdAndRemove({
+    _id: id,
+  })
+    .then((result, err) => {
+      if (result) {
+        return res.status(200).json({ message: "contact deleted" });
       }
-    }
-  );
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(404).json({ message: "Not found" });
+    });
 };
 
 const addContact = async (body) => {
-  const list = await listContacts();
-  const id = +list[list.length - 1].id + 1;
-  const newObj = {
-    id: id.toString(),
+  await Contact.create({
     name: body.name,
     email: body.email,
     phone: body.phone,
-  };
-
-  list.push(newObj);
-  await fs.promises.writeFile(contactsPath, JSON.stringify(list), (err) => {
-    if (err) {
-      throw err;
-    }
+    favorite: body.favorite || false,
   });
-
-  return newObj;
 };
 
-const updateContact = async (id, body) => {
-  const list = await listContacts();
-  const index = list.findIndex((element) => {
-    return element.id === id;
-  });
-  const contact = list[index];
-  if (body.name) {
-    contact.name = body.name;
-  }
-  if (body.email) {
-    contact.email = body.email;
-  }
-  if (body.phone) {
-    contact.phone = body.phone;
-  }
-  await fs.promises.writeFile(contactsPath, JSON.stringify(list), (err) => {
-    if (err) {
-      throw err;
-    }
-  });
-  return list[index];
+const updateContact = async (id, body, res) => {
+  return await Contact.findByIdAndUpdate({ _id: id }, body, {
+    new: true,
+  })
+    .then((result, err) => {
+      if (result) {
+        return res.status(200).json(result);
+      } else if (err) {
+        return res
+          .status(400)
+          .json({ message: `invalid fields: ${err.details[0].message}` });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(404).json({ message: "Not found" });
+    });
 };
 
 module.exports = {
