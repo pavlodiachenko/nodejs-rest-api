@@ -6,7 +6,6 @@ const {
   removeContact,
   addContact,
   updateContact,
-  updateStatusContact,
 } = require("../../models/contacts");
 const {
   postSchema,
@@ -43,48 +42,35 @@ router.post("/", async (req, res, next) => {
 });
 
 router.delete("/:id", async (req, res, next) => {
-  const contact = await getContactById(req.params.id);
-  if (contact) {
-    removeContact(req.params.id).then(() =>
-      res.status(200).json({ message: "contact deleted" })
-    );
-  } else {
-    res.status(404).json({ message: "Not found" });
-  }
+  const id = req.params.id;
+  return await removeContact(id, res);
 });
 
 router.put("/:id", async (req, res, next) => {
-  const contact = await getContactById(req.params.id);
   const data = req.body;
-  if (contact) {
-    const { error, value } = putSchema.validate(data);
-    if (error) {
-      return res
-        .status(400)
-        .json({ message: `invalid fields: ${error.details[0].message}` });
-    }
-    if (value) {
-      return res.status(200).json(await updateContact(req.params.id, data));
-    }
-  } else {
-    return res.status(404).json({ message: "Not found" });
+  const id = req.params.id;
+  const { error, value } = putSchema.validate(data);
+  if (error) {
+    return res
+      .status(400)
+      .json({ message: `invalid fields: ${error.details[0].message}` });
+  }
+  if (value) {
+    return await updateContact(id, data, res);
   }
 });
 
-router.patch("/:id/favorite", (req, res, next) => {
+router.patch("/:id/favorite", async (req, res, next) => {
   const data = req.body;
   const id = req.params.id;
   const { error, value } = patchSchema.validate(data);
   if (error) {
-    console.log(error.details[0].message);
     return res
       .status(400)
       .json({ message: "missing field favorite or invalid data enetered" });
   }
   if (value) {
-    updateStatusContact(id, data).then((contact) => {
-      return res.status(200).json(contact);
-    });
+    return await updateContact(id, data, res);
   }
 });
 
